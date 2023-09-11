@@ -6,13 +6,13 @@ import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-export default NextAuth({
+const handler = NextAuth({
     providers: [
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                username: { label: "Username", type: "text", placeholder: "jsmith" },
-                password: { label: "Password", type: "password" },
+                username: { label: "Username", type: "text", placeholder: "Proff" },
+                password: { label: "Passwort", type: "password", placeholder: "Passwort" },
             },
             async authorize(credentials: Record<"username" | "password", string> | undefined, req: any) {
                 // Check if credentials are provided
@@ -27,8 +27,12 @@ export default NextAuth({
                 if (user && bcrypt.compareSync(credentials.password, user.password)) {
                     // Return the user object without the password field
                     const { password, ...safeUserData } = user;
+                    //debug
+                    console.log("password match")
                     return safeUserData;
                 } else {
+                    //debug
+                    console.error("no user or no match");
                     return null;
                 }
             },
@@ -37,3 +41,4 @@ export default NextAuth({
     adapter: PrismaAdapter(prisma),
 });
 
+export {handler as GET, handler as POST};
