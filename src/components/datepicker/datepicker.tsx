@@ -1,4 +1,4 @@
-import { Box, Container, Slider, Typography } from "@mui/material";
+import { Box, Button, Container, Slider, Typography } from "@mui/material";
 import React from "react";
 
 //constants to define times as number: i.e. 0,25 = 15 minutes
@@ -6,13 +6,25 @@ const startTime = 7;  //starting hour as number
 const endTime   = 24; //ending hour as number 
 const stepsTime = 4;  //divider for stepping hours 
 
+const calcSteps = () => {
+  const range = endTime-startTime;
+  const steps: number = 100/range/stepsTime;
+
+  return(steps);
+}
+
+const calcTime = (value: number) => {
+  const calcTime: number = value/calcSteps()/stepsTime+startTime;
+
+  return (calcTime);
+}
 
 const valuetext = (value: number) => {
-  const calcValue  = value/calcSteps()/stepsTime+startTime;
-  const hourString = Math.floor(calcValue).toString();
+  const calcedTime = calcTime(value);
+  const hourString = Math.floor(calcedTime).toString();
   let fullString   = "";
 
-  switch (calcValue % 1) {
+  switch (calcedTime % 1) {
     case 0: 
       fullString = hourString + ":" + "00";
       break;
@@ -33,18 +45,23 @@ const valuetext = (value: number) => {
   return `${fullString} Uhr`;
 }
 
-const calcSteps = () => {
-  const range = endTime-startTime;
-  const steps: number = 100/range/stepsTime;
 
-  return(steps);
-}
-
+//Nice to have
 const getMarks = () => {
   let marks = [];
 
-  for(let i=0; i<=100; i+calcSteps()*stepsTime){
-    marks.push({value: i, label: (i/calcSteps()/stepsTime+startTime).toString()})
+  let i = 0;
+
+  while(i < 100){
+
+    if(i % calcSteps() === 0){
+      marks.push({value: i, label: (i/calcSteps()/stepsTime+startTime).toString()})
+    }
+
+    i = i+calcSteps();
+
+    //debug
+    console.log("i ", i)
   }
 
   //debug
@@ -53,6 +70,8 @@ const getMarks = () => {
   return(marks);
 }
 
+
+
 const DatePicker = () => {
 
     const [value, setValue] = React.useState<number[]>([20, 37]);
@@ -60,8 +79,34 @@ const DatePicker = () => {
     const handleChange = (event: Event, newValue: number | number[]) => {
       setValue(newValue as number[]);
       //debug
-      console.log(value);
+      console.log("value: ", value);
     };
+
+    const handleSubmit = () => {
+      fetchPostShift();
+    }
+
+    const fetchPostShift = async () => {
+      const data = {startTime: calcTime(value[0]), endTime: calcTime(value[1])}
+
+      //debug
+      console.log("data: ", data);
+
+      const response = await fetch("api/", {
+          method: "POST", 
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data), 
+        });
+    
+      const result = response.json(); 
+      
+      //debug
+      console.log(result);
+
+
+    }
 
     return (
         <Container sx={{
@@ -79,11 +124,12 @@ const DatePicker = () => {
                 getAriaValueText={valuetext}
                 valueLabelFormat={valuetext}
                 step={calcSteps()}
-                marks={getMarks()}
             />
+            <Button onClick={handleSubmit}>Abschicken</Button>
             </Box>
         </Container>
       );
+      return(<></>)
 }
 
 export default DatePicker;
