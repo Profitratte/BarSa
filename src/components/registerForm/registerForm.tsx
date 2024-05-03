@@ -62,7 +62,7 @@ export default function RegisterForm() {
                 margin="normal"
                 />
             <Button type="submit" variant="contained" color="primary">
-                Login
+                Register
             </Button>
         </form>
     )
