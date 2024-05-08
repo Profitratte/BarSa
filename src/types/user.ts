@@ -3,5 +3,10 @@ export type SessionUser = {
     username: string
 }
 
+export interface CredentialInput {
+    username: string;
+    password: string;
+}
+
 
 
